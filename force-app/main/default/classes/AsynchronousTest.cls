@@ -44,6 +44,29 @@ public with sharing class AsynchronousTest {
         // Call the method to test between the startTest and stopTest methods
         Test.startTest();
         //YOUR CODE HERE
+
+        // Create new list of account and opportunity Ids 
+        List<Id> accountIds = new List<Id>(); 
+        List<Id> opportunityIds = new List<Id>();
+
+        //Iterate through and add the list of test accounts
+        for(Account acc : testAccounts) {
+            accountIds.add(acc.Id);
+        }
+        //Iterate through and add the list of test opportunities 
+        for(Opportunity opp : testOpps) {
+            opportunityIds.add(opp.Id);
+        }
+
+        // Declare another list of recordIds
+        List<Id> recordIds = new List<Id>();
+        // Add account and opportunity Ids to the list of recordIds
+        recordIds.addAll(accountIds);
+        recordIds.addAll(opportunityIds);
+
+        // Call the updateAllNextStep method from the NextStepFuture class
+        NextStepFuture.updateAllNextStep(recordIds);
+
         Test.stopTest();
 
         // Query the updated accounts and opportunities
