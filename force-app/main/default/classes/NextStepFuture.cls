@@ -29,10 +29,19 @@ public with sharing class NextStepFuture {
      */
     @future 
     public static void updateAllNextStep(List<Id> recordIds) {
+        // Check for is recordsIds are null or empty 
+        if (recordIds == null || recordIds.isEmpty()) {
+            return; // prevents any unnecessary processing 
+        }
+        List<Account> accountsToUpdate = new List<Account>(); 
+        List<Opportunity> oppsToUpdate =  new List<Opportunity>(); 
+        
         // Update all the accounts next next step to 'Meeting in the future'
         List<Account> accounts = [SELECT Id, Next_Step__c FROM Account WHERE Id IN :recordIds];
         for (Account acc : accounts) {
             acc.Next_Step__c = 'Meeting in the future';
+            accountsToUpdate.add(acc);
+
         }
         update accounts;
 
@@ -40,8 +49,15 @@ public with sharing class NextStepFuture {
         List<Opportunity> opps = [SELECT Id, Next_Step__c FROM Opportunity WHERE Id IN :recordIds];
         for(Opportunity opp: opps){
             opp.Next_Step__c = 'Meeting in the future';
+            oppsToUpdate.add(opp);
         }
-        update opps;
+         // perform dml updates
+        if (!accountsToUpdate.isEmpty()) {
+            update accountsToUpdate;
+        }
+        if (!oppsToUpdate.isEmpty()) {
+            update oppsToUpdate;
+        }
     }
 
     /*
@@ -56,6 +72,11 @@ public with sharing class NextStepFuture {
         insertBigDeal(bigDeal);
 
         UserRole[] roles = [SELECT Id, Name FROM UserRole WHERE Id = :UserInfo.getUserRoleId() OR Name = 'CRO' LIMIT 1];
+        
+        List<id> roleIds = new List<Id>();
+        for(UserRole role : roles){
+            roleIds.add(role.Id);
+        }        
         updateUserRoleName(roles);
     }
 
