@@ -67,17 +67,18 @@ public with sharing class NextStepFuture {
     * Update the corresponding test class AsynchronousTest and test method nextStepFuture_testCreateDealAndUpdateRole to cover test this method
     */
     //Mix DML Error happens when you try to perform DML operations on setup and non-setup objects in a single transaction.
-    public static void createDealAndUpdateRole() {
+    public static void createDealAndUpdateRole() {        
+        
+        //insert the opportunity first (non-setup object)
         Opportunity bigDeal = new Opportunity();
         insertBigDeal(bigDeal);
 
+        //RunAs block to separate setup object DML from non-setup object DML
+        System.runAs(new User(Id = UserInfo.getUserId())) {
+        // Query or create UserRole
         UserRole[] roles = [SELECT Id, Name FROM UserRole WHERE Id = :UserInfo.getUserRoleId() OR Name = 'CRO' LIMIT 1];
-        
-        List<id> roleIds = new List<Id>();
-        for(UserRole role : roles){
-            roleIds.add(role.Id);
-        }        
         updateUserRoleName(roles);
+        }
     }
 
     // Helper method to insert big deal
@@ -89,9 +90,7 @@ public with sharing class NextStepFuture {
         
         insert opp;
     }
-
-
-    // Helper method to update role name
+    // Helper method to update role name 
     private static void updateUserRoleName(UserRole[] roles){
         UserRole role;
         if (roles.isEmpty()) {
@@ -107,4 +106,25 @@ public with sharing class NextStepFuture {
 
         upsert role;
     }
+    
+
+    /*
+    UserRole[] roles = [SELECT Id, Name FROM UserRole WHERE Id = :UserInfo.getUserRoleId() OR Name = 'CRO' LIMIT 1];
+    updateUserRoleName(roles);
+    // Helper method to update role name 
+    private static void updateUserRoleName(UserRole[] roles){
+        UserRole role;
+        if (roles.isEmpty()) {
+            role = new UserRole();
+            role.portalType = 'None'; 
+            role.CaseAccessForAccountOwner = 'Edit'; 
+            // role.OpportunityAccessForAccountOwner = 'Edit'; //This may need to be uncommented depending on your orgs Organization Wide Defaults(OWD) settings. If you are receiving FIELD_INTEGRITY_EXCEPTION, field integrity exception: unknown (Opportunity access level below organization default): [unknown], uncomment this line.
+        } else {
+            role = roles[0];
+        }
+
+        role.Name = 'CRO';
+
+        upsert role;
+    }*/ 
 }
